@@ -17,7 +17,7 @@ defmodule Aoc202401 do
     |> Enum.sum()
   end
 
-  def read_notes do
+  defp read_notes do
     Aoc.input_lines(__MODULE__)
     |> Stream.map(&String.split/1)
     |> Stream.map(&List.to_tuple/1)
@@ -27,7 +27,7 @@ defmodule Aoc202401 do
     end)
   end
 
-  def compare_notes([list_a, list_b]) do
+  defp compare_notes([list_a, list_b]) do
     Enum.zip_reduce(list_a, list_b, 0, fn a, b, acc -> abs(a - b) + acc end)
   end
 end
