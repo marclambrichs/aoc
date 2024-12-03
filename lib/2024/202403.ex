@@ -44,17 +44,15 @@ defmodule Aoc202403 do
   defp parse_with_enablers(list, bool \\ true)
   defp parse_with_enablers([], _), do: []
 
-  defp parse_with_enablers([h | t] = list, bool) do
+  defp parse_with_enablers([h | t], bool) do
     case h do
-      "do()" -> execute(t, true) ++ parse_with_enablers(tl(t), true)
+      "do()" -> execute(hd(t), true) ++ parse_with_enablers(tl(t), true)
       "don't()" -> parse_with_enablers(t, false)
-      _ -> execute(list, bool) ++ parse_with_enablers(t, bool)
+      _ -> execute(h, bool) ++ parse_with_enablers(t, bool)
     end
   end
 
-  defp execute([], _), do: []
+  defp execute(h, true), do: parse(h)
 
-  defp execute([h | _t], true), do: parse(h)
-
-  defp execute([_h | _t], false), do: []
+  defp execute(_h, false), do: []
 end
