@@ -70,14 +70,13 @@ defmodule Aoc202404 do
     for i <- 0..(length(grid) - 1), j <- 0..(String.length(Enum.at(grid, 0)) - 1) do
       substrings(grid, i, j, :part2)
     end
-    |> Enum.filter(&length(&1) == 2)
-#    |> List.flatten()
+    |> Enum.filter(&(length(&1) == 2))
   end
 
   def substrings(grid, i, j, :part2) do
     ([element(grid, i - 1, j + 1) ++ element(grid, i, j) ++ element(grid, i + 1, j - 1)] ++
-      [element(grid, i - 1, j - 1) ++ element(grid, i, j) ++ element(grid, i + 1, j + 1)])
-      |> Enum.map(&Enum.join/1)
-      |> Enum.filter(& (&1 == "SAM" or &1 == "MAS"))
+       [element(grid, i - 1, j - 1) ++ element(grid, i, j) ++ element(grid, i + 1, j + 1)])
+    |> Enum.map(&Enum.join/1)
+    |> Enum.filter(&(&1 == "SAM" or &1 == "MAS"))
   end
 end
