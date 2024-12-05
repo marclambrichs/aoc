@@ -14,8 +14,9 @@ defmodule Aoc202404 do
   end
 
   def part2() do
-    Enum.filter(@directions, &(Enum.at(&1, 0) != 0 and Enum.at(&1, 1) != 0))
-    #    matrix()
+    matrix()
+    |> substrings(:part2)
+    |> Enum.count()
   end
 
   defp matrix() do
@@ -65,4 +66,19 @@ defmodule Aoc202404 do
   defp update_direction({a, b}, factor), do: {a * factor, b * factor}
 
   ########## Part 2 ##########
+  def substrings(grid, :part2) do
+    for i <- 0..(length(grid) - 1), j <- 0..(String.length(Enum.at(grid, 0)) - 1) do
+      substrings(grid, i, j, :part2)
+    end
+    |> Enum.filter(&(length(&1) == 2))
+
+    #    |> List.flatten()
+  end
+
+  def substrings(grid, i, j, :part2) do
+    ([element(grid, i - 1, j + 1) ++ element(grid, i, j) ++ element(grid, i + 1, j - 1)] ++
+       [element(grid, i - 1, j - 1) ++ element(grid, i, j) ++ element(grid, i + 1, j + 1)])
+    |> Enum.map(&Enum.join/1)
+    |> Enum.filter(&(&1 == "SAM" or &1 == "MAS"))
+  end
 end
