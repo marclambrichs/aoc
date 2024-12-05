@@ -12,4 +12,21 @@ defmodule Aoc202404_test do
     test "returns" do
     end
   end
+
+  def grid() do
+    """
+    MMMSXXMASM
+    MSAMXMSMSA
+    AMXSXMAAMM
+    MSAMASMSMX
+    XMASAMXAMM
+    XXAMMXXAMA
+    SMSMSASXSS
+    SAXAMASAAA
+    MAMMMXMMMM
+    MXMXAXMASX
+    """
+    |> String.trim()
+    |> String.split(~r{[\s\n]})
+  end
 end
