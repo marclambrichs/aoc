@@ -1,7 +1,13 @@
 defmodule Aoc202411 do
+  @moduledoc """
+  iex(64)> Aoc202411.timer(:part1)
+  {4087, 199946}
+  iex(65)> Aoc202411.timer(:part2)
+  {71672, 237994815702032}
+  """
   def run() do
-    IO.inspect(part1())
-    IO.inspect(part2())
+    IO.inspect(timer(:part1))
+    IO.inspect(timer(:part2))
   end
 
   def timer(:part1), do: :timer.tc(__MODULE__, :part1, [])
