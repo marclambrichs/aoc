@@ -4,41 +4,46 @@ defmodule Aoc202411 do
     IO.inspect(part2())
   end
 
+  def timer(:part1), do: :timer.tc(__MODULE__, :part1, [])
+  def timer(:part2), do: :timer.tc(__MODULE__, :part2, [])
+
   def part1() do
+    # example()
     stones()
-    |> Enum.reduce(%{}, fn x, acc -> Map.update(acc, x, 1, &(&1 + 1)) end)
     |> blink(25)
     |> Map.values()
     |> Enum.sum()
   end
 
   def part2() do
+    # example()
     stones()
-    |> Enum.reduce(%{}, fn x, acc -> Map.update(acc, x, 1, &(&1 + 1)) end)
     |> blink(75)
     |> Map.values()
     |> Enum.sum()
   end
 
-  def example() do
+  defp example() do
     """
     125 17
     """
     |> String.trim()
     |> String.split(" ", trim: true)
     |> Enum.map(&String.to_integer/1)
+    |> Enum.reduce(%{}, fn x, acc -> Map.update(acc, x, 1, &(&1 + 1)) end)
   end
 
-  def stones(),
+  defp stones(),
     do:
       Aoc.input_lines(__MODULE__)
       |> Enum.to_list()
       |> Stream.flat_map(&String.split(&1, " ", trim: true))
       |> Stream.map(&String.to_integer/1)
+      |> Enum.reduce(%{}, fn x, acc -> Map.update(acc, x, 1, &(&1 + 1)) end)
 
-  def blink(0), do: [1]
+  defp blink(0), do: [1]
 
-  def blink(stone) when is_integer(stone) do
+  defp blink(stone) when is_integer(stone) do
     digits = digits(stone)
 
     case rem(digits, 2) do
@@ -52,7 +57,7 @@ defmodule Aoc202411 do
     end
   end
 
-  def digits(stone), do: String.length(Integer.to_string(stone))
+  defp digits(stone), do: String.length(Integer.to_string(stone))
 
   ########## Part 2 ##########
   def blink(stones, 0) when is_map(stones), do: stones
