@@ -16,7 +16,13 @@ defmodule Aoc202410 do
   end
 
   def part2() do
-    map()
+#      map = example()
+      map = map()
+
+      trailheads(map)
+      |> Enum.map(&walk(:part2, &1, map))
+      |> List.flatten()
+      |> Enum.count()
   end
 
   def example() do
@@ -75,4 +81,13 @@ defmodule Aoc202410 do
   end
 
   ########## Part 2 ##########
+  def walk(:part2, coord, matrix) do
+    case height(coord, matrix) do
+      9 -> 1
+
+      _h ->
+        neighbours(coord, matrix)
+        |> Enum.map(&walk(:part2, &1, matrix))
+    end
+  end
 end
