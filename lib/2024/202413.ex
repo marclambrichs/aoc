@@ -16,7 +16,16 @@ defmodule Aoc202413 do
   end
 
   def part2() do
-
+    example(0)
+    |> parse_machines()
+    |> Enum.map(fn [{ax, ay}, {bx, by}, {px, py}] ->
+      count_tokens(:b, [
+        {ax, ay},
+        {bx, by},
+        {px + 10_000_000_000_000, py + 10_000_000_000_000}
+      ])
+    end)
+    |> Enum.sum()
   end
 
   def example(nr \\ 0) do
@@ -62,14 +71,33 @@ defmodule Aoc202413 do
     )
   end
 
-  def count_tokens([{a_x, a_y}, {b_x, b_y}, {prize_x, prize_y}]) do
+  def count_tokens([{ax, ay}, {bx, by}, {px, py}]) do
     for a <- 0..100,
         b <- 0..100,
-        a * a_x + b * b_x == prize_x,
-        a * a_y + b * b_y == prize_y do
+        a * ax + b * bx == px,
+        a * ay + b * by == py do
       a * 3 + b
     end
   end
 
   ########## Part 2 ##########
+  @doc """
+  ax * x + ay * y = px
+  bx * x + by * y = py
+
+  Determinant =
+    | ax ay |
+    | bx by |
+  """
+  def count_tokens(:b, [{ax, ay}, {bx, by}, {px, py}]) do
+    determinant = ax * by - ay * bx
+    det_x = px * by - bx * py
+    det_y = ax * py - px * ay
+
+    if rem(det_x, determinant) == 0 and rem(det_y, determinant) == 0 do
+      div(det_x, determinant) * 3 + div(det_y, determinant)
+    else
+      0
+    end
+  end
 end
