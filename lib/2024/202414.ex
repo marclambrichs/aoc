@@ -1,6 +1,6 @@
 defmodule Aoc202414 do
-#  @width 11
-#  @height 7
+  # @width 11
+  # @height 7
   @width 101
   @height 103
 
@@ -25,6 +25,7 @@ defmodule Aoc202414 do
       }
     end)
     |> steps()
+    |> IO.inspect()
     |> Enum.group_by(&quadrant(&1))
     |> Enum.reduce(1, fn
       {quadrant, list}, acc when quadrant > 0 -> acc * Enum.count(list)
@@ -44,6 +45,9 @@ defmodule Aoc202414 do
         vy: String.to_integer(vy)
       }
     end)
+    |> init()
+    |> then(&steps(:part2, &1))
+    |> display()
   end
 
   def example(nr \\ 0) do
@@ -93,4 +97,48 @@ defmodule Aoc202414 do
 
   ########## Part 2 ##########
 
+  def init(robots) do
+    Enum.reduce(robots, %{}, fn robot, acc ->
+      Map.update(acc, {robot.py, robot.px}, [{robot.vx, robot.vy}], fn list ->
+        list ++ [{robot.vx, robot.vy}]
+      end)
+    end)
+  end
+
+  def steps(:part2, robots, step \\ 0) do
+    if is_tree?(robots) do
+      IO.puts("Number of steps needed is #{step}")
+      robots
+    else
+      steps(:part2, step(robots), step + 1)
+    end
+  end
+
+  def step(robots) do
+    Enum.reduce(robots, %{}, fn {{py, px} = point, list}, acc ->
+      Enum.reduce(list, acc, fn {vx, vy}, acc ->
+        hor = rem(vx + @width, @width)
+        vert = rem(vy + @height, @height)
+
+        Map.update(acc, {rem(py + vert, @height), rem(px + hor, @width)}, [{vx, vy}], fn list ->
+          list ++ [{vx, vy}]
+        end)
+      end)
+    end)
+  end
+
+  def is_tree?(robots) do
+    Enum.all?(robots, fn {_key, list} -> Enum.count(list) == 1 end)
+  end
+
+  def display(robots) do
+    tree =
+      for _ <- 0..@height do
+        String.duplicate(".", @width) |> String.to_charlist()
+      end
+
+    Enum.reduce(Map.keys(robots), tree, fn {py, px}, acc ->
+      List.update_at(acc, py, &List.update_at(&1, px, fn _ -> ?* end))
+    end)
+  end
 end
