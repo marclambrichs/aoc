@@ -3,6 +3,8 @@ defmodule Aoc202415 do
   @empty "."
   @robot "@"
   @wall "#"
+  @lbox "["
+  @rbox "]"
 
   @up {0, -1}
   @right {1, 0}
@@ -19,7 +21,7 @@ defmodule Aoc202415 do
 
   def part1() do
     [commands, matrix, start] =
-      example(2)
+      example(0)
       |> parse()
 
     [_end, result] = execute(commands, matrix, start)
@@ -30,6 +32,13 @@ defmodule Aoc202415 do
   end
 
   def part2() do
+    [commands, matrix, start] = parse(:part2, example(0))
+    [_end, result] = execute(commands, matrix, start)
+
+    matrix
+    #    Enum.reduce(Map.keys(result), 0, fn point, acc ->
+    #      if Map.get(result, point) == @lbox, do: acc + gps(point), else: acc
+    #    end)
   end
 
   def example(nr \\ 0) do
@@ -80,6 +89,21 @@ defmodule Aoc202415 do
         """
         |> String.split("\n", trim: false)
         |> List.delete_at(-1)
+
+      3 ->
+        """
+        #######
+        #...#.#
+        #.....#
+        #..OO@#
+        #..O..#
+        #.....#
+        #######
+
+        <vv<<^^<<^^
+        """
+        |> String.split("\n", trim: false)
+        |> List.delete_at(-1)
     end
     |> Enum.reduce({[], []}, fn x, {xs, ys} ->
       if x == "", do: {ys, xs}, else: {[x | xs], ys}
@@ -118,37 +142,59 @@ defmodule Aoc202415 do
   end
 
   def execute(dir, matrix, start) when is_tuple(dir) do
-    if changed = move_robot(matrix, start, dir) do
+    if changed = shift_box(matrix, start, dir) do
       [position(start, dir), changed]
     else
       [start, matrix]
     end
   end
 
-  def move_robot(matrix, start, dir) do
-    next = position(start, dir)
+  def shift_box(matrix, start, dir) when is_tuple(start) do
+    finish = position(start, dir)
 
-    case Map.get(matrix, next) do
-      @box ->
-        if shifted = shift_boxes(matrix, next, position(next, dir), dir),
-          do: switch_positions(shifted, start, next),
-          else: nil
+    case Map.get(matrix, finish) do
+      @empty -> matrix
+      @wall -> nil
+      @box -> shift_box(matrix, finish, dir)
+      @lbox when dir in [@left, @right] -> shift_box(matrix, finish, dir)
+      @rbox when dir in [@left, @right] -> shift_box(matrix, finish, dir)
+      @lbox -> shift_box(matrix, [finish, position(finish, @right)], dir)
+      @rbox -> shift_box(matrix, [position(finish, @left), finish], dir)
+    end
+    |> switch_positions(start, finish)
+  end
 
-      @empty ->
-        switch_positions(matrix, start, next)
+  def shift_box(nil, _, _), do: nil
 
-      @wall ->
+  def shift_box(matrix, [l_start, r_start], dir) do
+    l_finish = position(l_start, dir)
+    r_finish = position(r_start, dir)
+
+    case Enum.join(Enum.map([l_finish, r_finish], &Map.get(matrix, &1))) do
+      ".." ->
+        matrix
+
+      "[]" ->
+        shift_box(matrix, [l_finish, r_finish], dir)
+
+      ".[" ->
+        shift_box(matrix, [r_finish, position(r_finish, @right)], dir)
+
+      "]." ->
+        shift_box(matrix, [l_finish, position(l_finish, @left)], dir)
+
+      "][" ->
+        shift_box(matrix, [position(l_finish, @left), l_finish], dir)
+        |> shift_box([r_finish, position(r_finish, @right)], dir)
+
+      _ ->
         nil
     end
+    |> switch_positions(l_start, l_finish)
+    |> switch_positions(r_start, r_finish)
   end
 
-  def shift_boxes(matrix, start, finish, dir) do
-    case Map.get(matrix, finish) do
-      @empty -> switch_positions(matrix, start, finish)
-      @wall -> nil
-      @box -> shift_boxes(matrix, start, position(finish, dir), dir)
-    end
-  end
+  def switch_positions(nil, _, _), do: nil
 
   def switch_positions(matrix, from, to) do
     start = Map.get(matrix, from)
@@ -163,9 +209,9 @@ defmodule Aoc202415 do
 
   def display(matrix) do
     keys = Map.keys(matrix) |> Enum.sort_by(&{elem(&1, 1), elem(&1, 0)})
-    height = keys |> Enum.map(&elem(&1, 0)) |> Enum.max()
+    height = keys |> Enum.map(&elem(&1, 1)) |> Enum.max()
 
-    Enum.reduce(0..height, [], fn y, acc ->
+    Enum.reduce(0..height, [], fn y, _ ->
       Enum.filter(keys, fn {_, b} -> b == y end)
       |> Enum.map(&Map.get(matrix, &1))
       |> Enum.join("")
@@ -174,4 +220,44 @@ defmodule Aoc202415 do
   end
 
   ########## Part 2 ##########
+  def parse(:part2, {commands, matrix}) do
+    [
+      Enum.reverse(commands) |> Enum.join(),
+      Enum.reduce(matrix |> Enum.reverse() |> Enum.with_index(), [%{}, nil], fn {row, y}, acc ->
+        Enum.reduce(String.graphemes(row) |> Enum.with_index(), acc, fn {symbol, x},
+                                                                        [matrix, start] ->
+          case symbol do
+            @wall ->
+              [
+                Map.put(matrix, {2 * x, y}, symbol)
+                |> Map.put({2 * x + 1, y}, @wall),
+                start
+              ]
+
+            @robot ->
+              [
+                Map.put(matrix, {2 * x, y}, symbol)
+                |> Map.put({2 * x + 1, y}, @empty),
+                {2 * x, y}
+              ]
+
+            @box ->
+              [
+                Map.put(matrix, {2 * x, y}, "[")
+                |> Map.put({2 * x + 1, y}, "]"),
+                start
+              ]
+
+            @empty ->
+              [
+                Map.put(matrix, {2 * x, y}, symbol)
+                |> Map.put({2 * x + 1, y}, @empty),
+                start
+              ]
+          end
+        end)
+      end)
+    ]
+    |> List.flatten()
+  end
 end
